@@ -1,0 +1,22 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t ashwinikumarmishra/docker-travis-aws -f ./client/Dockerfile.dev ./client
+
+script:
+   - docker run ashwinikumarmishra/docker-travis-aws npm test -- --coverage
+
+after_success:
+    - docker build -t ashwinikumarmishra/multi-client ./client
+    - docker build -t ashwinikumarmishra/multi-nginx ./nginx
+    - docker build -t ashwinikumarmishra/multi-server ./server
+    - docker build -t ashwinikumarmishra/multi-worker ./worker
+    # docker login
+    - echo "$DOCKER_PASSWORD" | docker login  -u "$DOCKER_ID" --password-stdin
+    - docker push
+    - docker push ashwinikumarmishra/multi-client
+    - docker push ashwinikumarmishra/multi-nginx
+    - docker push ashwinikumarmishra/multi-server
+    - docker push ashwinikumarmishra/multi-worker
